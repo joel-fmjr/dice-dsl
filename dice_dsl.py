@@ -31,6 +31,53 @@ dice_grammar = r"""
 
 parser = Lark(dice_grammar)
 
+
+class DiceError(ValueError):
+    """Erro semântico: a expressão é sintaticamente válida, mas não faz sentido."""
+
+
+ROTULO = {"explode": "ex", "keep_biggest": "kb", "keep_smallest": "ks", "reroll": "rr"}
+
+
+def validar(tree):
+    """Verificação semântica. Roda depois do parse e ANTES de rolar qualquer
+    dado, então uma expressão inválida não executa nada.
+
+    Regras (por rolagem NdM seguida de modificadores):
+      1. N >= 1 e M >= 1
+      2. cada modificador aparece no máximo uma vez
+      3. kb e ks não podem aparecer juntos
+      4. ex exige M >= 2 (com 1 face todo dado explodiria para sempre)
+      5. kb/ks exigem 1 <= n <= N
+    """
+    for roll in tree.find_data("roll"):
+        qtd = int(roll.children[0])
+        lados = int(roll.children[1])
+        mods = roll.children[2:]
+        nome = f"{qtd}d{lados}"
+
+        if qtd < 1:
+            raise DiceError(f"{nome}: precisa de pelo menos 1 dado")
+        if lados < 1:
+            raise DiceError(f"{nome}: o dado precisa de pelo menos 1 face")
+
+        tipos = [m.data for m in mods]
+        for t in set(tipos):
+            if tipos.count(t) > 1:
+                raise DiceError(f"{nome}: o modificador '{ROTULO[t]}' aparece mais de uma vez")
+        if "keep_biggest" in tipos and "keep_smallest" in tipos:
+            raise DiceError(f"{nome}: kb e ks não podem ser usados juntos")
+
+        for m in mods:
+            if m.data == "explode" and lados < 2:
+                raise DiceError(f"{nome}: ex não pode ser usado em dado de 1 face (explodiria para sempre)")
+            if m.data in ("keep_biggest", "keep_smallest"):
+                n = int(m.children[0])
+                if not 1 <= n <= qtd:
+                    raise DiceError(f"{nome}: {ROTULO[m.data]}{n} precisa estar entre 1 e {qtd}")
+
+# Preenchido durante a avaliação de uma expressão; um item por rolagem
+# (NUMBER "d" NUMBER ...) que apareceu na expressão.
 _detalhes = []
 
 
@@ -55,7 +102,7 @@ def eval_node(node):
 
 def run_single_roll(node):
     """Executa UMA rolagem (NUMBER 'd' NUMBER modifier*) e registra em
-    _detalhes o passo a passo"""
+    _detalhes o passo a passo."""
     num_dice = int(node.children[0])
     sides = int(node.children[1])
     modifiers = node.children[2:]
@@ -145,6 +192,7 @@ def run_roll(programa):
     é só um único dado sem modificadores (ex.: 1d20)."""
     _detalhes.clear()
     tree = parser.parse(programa)
+    validar(tree)
     total = eval_node(tree)
 
     composta = any(tree.find_pred(
@@ -160,12 +208,12 @@ def run_roll(programa):
 
 if __name__ == "__main__":
     exemplos = [
-        # "2d6 + 3 * 2",
-        # "2d6 * 2 + 3",
-        # "1d4 * 1d6",
-        # "4d6kb3rr<3*2-1",
-        # "(1d10+5+1d6)*2",
-        # "8d6ks3kb4",
+        "2d6 + 3 * 2",
+        "2d6 * 2 + 3",
+        "1d4 * 1d6",
+        "4d6kb3rr<3*2-1",
+        "(1d10+5+1d6)*2",
+        "8d6ks3kb4",
         "4d6ex",
     ]
 
@@ -174,5 +222,8 @@ if __name__ == "__main__":
         # print(parser.parse(ex).pretty())
         # print("-" * 40)
         print(f"{ex}")
-        resultado = run_roll(ex)
-        print(f"  => resultado final: {resultado}\n")
+        try:
+            resultado = run_roll(ex)
+            print(f"  => resultado final: {resultado}\n")
+        except DiceError as e:
+            print(f"  erro semântico: {e}\n")
