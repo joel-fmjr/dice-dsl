@@ -1,0 +1,31 @@
+start: expr
+
+expr: expr "+" term   -> add_expr
+    | expr "-" term   -> sub_expr
+    | term
+
+term: term "*" factor -> mul_expr
+    | factor
+
+factor: roll
+      | avg_roll
+      | NUMBER
+      | "(" expr ")"
+
+roll: NUMBER "d" NUMBER modifier*
+
+// avg é uma forma de rolagem própria: não rola dados e não aceita
+// outros modificadores.
+avg_roll: NUMBER "d" NUMBER "avg"
+
+modifier: "ex"            -> explode
+        | "kb" NUMBER     -> keep_biggest
+        | "ks" NUMBER     -> keep_smallest
+        | "rr" COMP NUMBER -> reroll
+        | "min" NUMBER    -> min_value
+
+COMP: "<" | ">"
+
+%import common.INT -> NUMBER
+%import common.WS
+%ignore WS
