@@ -161,13 +161,13 @@ def run_single_roll(node):
         dice = [max(d, min_val) for d in dice]
         trace.append((f"min{min_val}", list(dice)))
 
-    if explode:
-        dice, texto = apply_explode(dice)
-        trace.append(("explode", texto))
-
     if keep_n is not None:
         dice = sorted(dice, reverse=(keep_mode == "kb"))[:keep_n]
         trace.append((f"{keep_mode}{keep_n}", list(dice)))
+
+    if explode:
+        dice, texto = apply_explode(dice)
+        trace.append(("explode", texto))
 
     total = sum(dice)
 
@@ -204,6 +204,7 @@ def run_roll(programa):
 
 if __name__ == "__main__":
     exemplos = [
+        "4d6 rr<3 kb3 ex min3 ",
         "2d6 + 3 * 2",
         "2d6 * 2 + 3",
         "1d4 * 1d6",
@@ -232,3 +233,4 @@ if __name__ == "__main__":
             print(f"  erro sintático (rejeitado pela gramática) na coluna {e.column}\n")
         except DiceError as e:
             print(f"  erro semântico: {e}\n")
+        break   
