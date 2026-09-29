@@ -8,7 +8,8 @@ class DiceError(ValueError):
     """Erro semântico: a expressão é sintaticamente válida, mas não faz sentido."""
 
 
-ROTULO = {"explode": "ex", "keep_biggest": "kb", "keep_smallest": "ks", "reroll": "rr", "min_value": "min"}
+
+ROTULO = {"explode": "ex", "keep_biggest": "kb", "keep_smallest": "ks", "reroll": "rr", "min_value": "min", "max_value": "max"}
 
 
 def validar(tree):
@@ -22,6 +23,7 @@ def validar(tree):
       4. ex exige M >= 2 (com 1 face todo dado explodiria para sempre)
       5. kb/ks exigem 1 <= n <= N
       6. min exige 1 <= n <= M
+      7. max exige 1 <= n <= M
       (NdMavg, o valor esperado, é uma produção própria da gramática: só
       valem as regras 1 e 2 de N e M; não há modificadores para combinar)
     """
@@ -50,10 +52,10 @@ def validar(tree):
                 n = int(m.children[0])
                 if not 1 <= n <= qtd:
                     raise DiceError(f"{nome}: {ROTULO[m.data]}{n} precisa estar entre 1 e {qtd}")
-            if m.data == "min_value":
+            if m.data == "min_value" or m.data == "max_value":
                 n = int(m.children[0])
                 if not 1 <= n <= lados:
-                    raise DiceError(f"{nome}: min{n} precisa estar entre 1 e {lados}")
+                    raise DiceError(f"{nome}: min/max{n} precisa estar entre 1 e {lados}")
 
 _detalhes = []
 
@@ -102,6 +104,7 @@ def run_single_roll(node):
     reroll_cmp = None
     reroll_n = None
     min_val = None
+    max_val = None
 
     for m in modifiers:
         if m.data == "explode":
@@ -117,6 +120,8 @@ def run_single_roll(node):
             reroll_n = int(m.children[1])
         elif m.data == "min_value":
             min_val = int(m.children[0])
+        elif m.data == "max_value":
+            max_val = int(m.children[0])
 
     trace = []  # lista de (rótulo, snapshot_dos_dados_ou_None)
 
@@ -160,6 +165,10 @@ def run_single_roll(node):
     if min_val is not None:
         dice = [max(d, min_val) for d in dice]
         trace.append((f"min{min_val}", list(dice)))
+
+    if max_val is not None:
+        dice = [min(d, max_val) for d in dice]
+        trace.append((f"max{max_val}", list(dice)))
 
     if keep_n is not None:
         dice = sorted(dice, reverse=(keep_mode == "kb"))[:keep_n]
@@ -213,6 +222,7 @@ if __name__ == "__main__":
         "8d6ks3kb4",
         "4d6ex",
         "4d6min3",
+        "4d6max3",
         "1d10min10ex",
         "4d6avg",
         "3d6avg",
@@ -233,4 +243,3 @@ if __name__ == "__main__":
             print(f"  erro sintático (rejeitado pela gramática) na coluna {e.column}\n")
         except DiceError as e:
             print(f"  erro semântico: {e}\n")
-        break   

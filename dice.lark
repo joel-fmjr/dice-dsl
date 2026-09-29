@@ -23,6 +23,7 @@ modifier: "ex"            -> explode
         | "ks" NUMBER     -> keep_smallest
         | "rr" COMP NUMBER -> reroll
         | "min" NUMBER    -> min_value
+        | "max" NUMBER    -> max_value
 
 COMP: "<" | ">"
 
