@@ -24,10 +24,8 @@ def validar(tree):
       5. kb/ks exigem 1 <= n <= N
       6. min exige 1 <= n <= M
       7. max exige 1 <= n <= M
-      (NdMavg, o valor esperado, é uma produção própria da gramática: só
-      valem as regras 1 e 2 de N e M; não há modificadores para combinar)
     """
-    for roll in tree.find_pred(lambda t: t.data in ("roll", "avg_roll")):
+    for roll in tree.find_pred(lambda t: t.data == "roll"):
         qtd = int(roll.children[0])
         lados = int(roll.children[1])
         mods = roll.children[2:]
@@ -75,20 +73,8 @@ def eval_node(node):
         return eval_node(node.children[0]) * eval_node(node.children[1])
     if node.data == "roll":
         return run_single_roll(node)
-    if node.data == "avg_roll":
-        return run_avg_roll(node)
 
     raise ValueError(f"Nó desconhecido na árvore: {node.data}")
-
-
-def run_avg_roll(node):
-    """Valor esperado de NdM (N*(M+1)/2, arredondado para baixo), sem rolar
-    nenhum dado."""
-    num_dice = int(node.children[0])
-    sides = int(node.children[1])
-    total = num_dice * (sides + 1) // 2
-    _detalhes.append((False, f"{num_dice}d{sides} -> avg: {num_dice}*({sides}+1)/2 -> total: {total}"))
-    return total
 
 
 def run_single_roll(node):
@@ -213,6 +199,7 @@ def run_roll(programa):
 
 if __name__ == "__main__":
     exemplos = [
+        "10d6kl5kh3",
         "4d6 rr<3 kb3 ex min3 ",
         "2d6 + 3 * 2",
         "2d6 * 2 + 3",
@@ -224,11 +211,6 @@ if __name__ == "__main__":
         "4d6min3",
         "4d6max3",
         "1d10min10ex",
-        "4d6avg",
-        "3d6avg",
-        "1d20avg + 2",
-        "4d6avgkb3",
-        "4d6avgavg",
     ]
 
     for ex in exemplos:
@@ -243,3 +225,4 @@ if __name__ == "__main__":
             print(f"  erro sintático (rejeitado pela gramática) na coluna {e.column}\n")
         except DiceError as e:
             print(f"  erro semântico: {e}\n")
+        break
