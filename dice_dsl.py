@@ -166,39 +166,35 @@ def run_single_roll(node):
 
     total = sum(dice)
 
-    simples = num_dice == 1 and len(modifiers) == 0
     partes = [f"{num_dice}d{sides}"]
 
     for rotulo, snap in trace:
         partes.append(f"{rotulo}: {snap}" if snap is not None else rotulo)
-        
+
     partes.append(f"total: {total}")
-    _detalhes.append((simples, " -> ".join(partes)))
+    _detalhes.append(" -> ".join(partes))
 
     return total
 
 
 def run_roll(programa):
-    """Imprime o detalhe de TODAS as rolagens, exceto quando a expressão
-    é só um único dado sem modificadores (ex.: 1d20)."""
+    """Imprime o detalhe de TODAS as rolagens."""
     _detalhes.clear()
     tree = parser.parse(programa)
     validar(tree)
     total = eval_node(tree)
 
-    composta = any(tree.find_pred(
-        lambda t: t.data in ("add_expr", "sub_expr", "mul_expr")))
-    todas_simples = all(simples for simples, _ in _detalhes)
-
-    if composta or not todas_simples:
-        for _, linha in _detalhes:
-            print(f"  {linha}")
+    for linha in _detalhes:
+        print(f"  {linha}")
 
     return total
 
 
 if __name__ == "__main__":
     exemplos = [
+        "1 ** 1",
+        "1d20",
+        "1d6",
         "10d6kl5kh3",
         "4d6 rr<3 kb3 ex min3 ",
         "2d6 + 3 * 2",
@@ -225,4 +221,4 @@ if __name__ == "__main__":
             print(f"  erro sintático (rejeitado pela gramática) na coluna {e.column}\n")
         except DiceError as e:
             print(f"  erro semântico: {e}\n")
-        break
+        # break
