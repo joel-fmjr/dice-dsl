@@ -12,7 +12,7 @@ class RollResult:
     rolls: list[int]
 
     def combine(self, other, total):
-        return RollResult(total=total, rolls = self.rolls + other.rolls)
+        return RollResult(total=total, rolls=self.rolls + other.rolls)
 
 
 @v_args(inline=True)
