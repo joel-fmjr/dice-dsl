@@ -8,7 +8,7 @@ term: term "*" factor -> mul_expr
     | factor
 
 factor: roll
-      | NUMBER
+      | NUMBER        -> number
       | "(" expr ")"
 
 roll: NUMBER "d" NUMBER modifier*

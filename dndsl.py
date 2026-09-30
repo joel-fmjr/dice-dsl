@@ -24,11 +24,18 @@ class Interpreter(Transformer):
     def expr(self, term):
         return term
 
+    def add_expr(self, term_1, term_2):
+        total = term_1.total + term_2.total
+        return RollResult(total=total, rolls=[])
+
     def term(self, factor):
         return factor
 
     def factor(self, roll):
         return roll
+
+    def number(self, value):
+        return RollResult(total=int(value), rolls=[])
 
     def roll(self, quantity, faces):
         rolls = [self.rng.randint(1, int(faces)) for _ in range(int(quantity))]
