@@ -53,6 +53,12 @@ class Interpreter(Transformer):
     def keep_smallest(self, count):
         return lambda rolls: sorted(rolls)[: int(count)]
 
+    def min_value(self, minimum):
+        return lambda rolls: [max(roll, int(minimum)) for roll in rolls]
+
+    def max_value(self, maximum):
+        return lambda rolls: [min(roll, int(maximum)) for roll in rolls]
+
     def roll(self, quantity, faces, *modifiers):
         rolls = [self.rng.randint(1, int(faces)) for _ in range(int(quantity))]
         kept = rolls

@@ -121,3 +121,15 @@ def test_keep_smallest_two_counts_the_two_smallest_dice():
     result = evaluate("4d10ks2", rng=FakeRng(2, 8, 3, 10))
 
     assert result.total == 5
+
+
+def test_min_raises_dice_below_the_minimum():
+    result = evaluate("3d6min3", rng=FakeRng(1, 5, 2))
+
+    assert result.total == 11
+
+
+def test_max_lowers_dice_above_the_maximum():
+    result = evaluate("3d6max3", rng=FakeRng(6, 2, 4))
+
+    assert result.total == 8
