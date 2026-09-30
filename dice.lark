@@ -16,7 +16,8 @@ roll: NUMBER "d" NUMBER modifier*
 modifier: "ex"            -> explode
         | "kb" NUMBER     -> keep_biggest
         | "ks" NUMBER     -> keep_smallest
-        | "rr" COMP NUMBER -> reroll
+        | "r" COMP NUMBER -> reroll
+        | "rr" COMP NUMBER -> recursive_reroll
         | "min" NUMBER    -> min_value
         | "max" NUMBER    -> max_value
 
