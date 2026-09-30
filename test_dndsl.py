@@ -133,3 +133,9 @@ def test_max_lowers_dice_above_the_maximum():
     result = evaluate("3d6max3", rng=FakeRng(6, 2, 4))
 
     assert result.total == 8
+
+
+def test_explode_rolls_an_extra_die_for_each_max_face():
+    result = evaluate("2d6ex", rng=FakeRng(6, 3, 4))
+
+    assert result.total == 13

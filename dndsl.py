@@ -12,6 +12,15 @@ class DiceError(Exception):
 
 
 @dataclass
+class Die:
+    faces: int
+    rng: object
+
+    def roll(self):
+        return self.rng.randint(1, self.faces)
+
+
+@dataclass
 class RollResult:
     total: int
     rolls: list[int]
@@ -48,22 +57,30 @@ class Interpreter(Transformer):
         return RollResult(total=int(value), rolls=[])
 
     def keep_biggest(self, count):
-        return lambda rolls: sorted(rolls, reverse=True)[: int(count)]
+        return lambda rolls, die: sorted(rolls, reverse=True)[: int(count)]
 
     def keep_smallest(self, count):
-        return lambda rolls: sorted(rolls)[: int(count)]
+        return lambda rolls, die: sorted(rolls)[: int(count)]
 
     def min_value(self, minimum):
-        return lambda rolls: [max(roll, int(minimum)) for roll in rolls]
+        return lambda rolls, die: [max(roll, int(minimum)) for roll in rolls]
 
     def max_value(self, maximum):
-        return lambda rolls: [min(roll, int(maximum)) for roll in rolls]
+        return lambda rolls, die: [min(roll, int(maximum)) for roll in rolls]
+
+    def explode(self):
+        def apply(rolls, die):
+            extra = [die.roll() for roll in rolls if roll == die.faces]
+            return rolls + extra
+
+        return apply
 
     def roll(self, quantity, faces, *modifiers):
-        rolls = [self.rng.randint(1, int(faces)) for _ in range(int(quantity))]
+        die = Die(faces=int(faces), rng=self.rng)
+        rolls = [die.roll() for _ in range(int(quantity))]
         kept = rolls
         for modifier in modifiers:
-            kept = modifier(kept)
+            kept = modifier(kept, die)
         return RollResult(total=sum(kept), rolls=rolls)
 
 
