@@ -47,3 +47,24 @@ def test_addition():
     result = evaluate("1d6 + 2", rng=FakeRng(4))
 
     assert result.total == 6
+
+
+def test_subtraction():
+    result = evaluate("1d6 - 2", rng=FakeRng(4))
+
+    assert result.total == 2
+
+def test_left_associativity():
+    result = evaluate("10 - 3 - 2")
+
+    assert result.total == 5
+
+def test_addition_keeps_rolls_from_both_operands():
+    result = evaluate("1d6 + 1d4", rng=FakeRng(3, 2))
+
+    assert result.rolls == [3, 2]
+
+def test_subtraction_keeps_rolls_from_both_operands():
+    result = evaluate("1d6 - 1d4", rng=FakeRng(4, 3))
+
+    assert result.rolls == [4, 3]
