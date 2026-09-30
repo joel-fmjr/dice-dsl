@@ -50,6 +50,9 @@ class Interpreter(Transformer):
     def keep_biggest(self, count):
         return lambda rolls: sorted(rolls, reverse=True)[: int(count)]
 
+    def keep_smallest(self, count):
+        return lambda rolls: sorted(rolls)[: int(count)]
+
     def roll(self, quantity, faces, *modifiers):
         rolls = [self.rng.randint(1, int(faces)) for _ in range(int(quantity))]
         kept = rolls

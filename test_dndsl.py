@@ -103,3 +103,21 @@ def test_keep_biggest_two_counts_the_two_biggest_dice():
     result = evaluate("4d10kb2", rng=FakeRng(2, 8, 3, 10))
 
     assert result.total == 18
+
+
+def test_keep_smallest_counts_only_the_smallest_dice():
+    result = evaluate("4d4ks1", rng=FakeRng(3, 1, 4, 2))
+
+    assert result.total == 1
+
+
+def test_keep_smallest_maintains_rolls():
+    result = evaluate("4d6ks1", rng=FakeRng(2, 5, 3, 6))
+
+    assert result.rolls == [2, 5, 3, 6]
+
+
+def test_keep_smallest_two_counts_the_two_smallest_dice():
+    result = evaluate("4d10ks2", rng=FakeRng(2, 8, 3, 10))
+
+    assert result.total == 5
