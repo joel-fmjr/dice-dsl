@@ -47,9 +47,15 @@ class Interpreter(Transformer):
     def number(self, value):
         return RollResult(total=int(value), rolls=[])
 
-    def roll(self, quantity, faces):
+    def keep_biggest(self, count):
+        return lambda rolls: sorted(rolls, reverse=True)[: int(count)]
+
+    def roll(self, quantity, faces, *modifiers):
         rolls = [self.rng.randint(1, int(faces)) for _ in range(int(quantity))]
-        return RollResult(total=sum(rolls), rolls=rolls)
+        kept = rolls
+        for modifier in modifiers:
+            kept = modifier(kept)
+        return RollResult(total=sum(kept), rolls=rolls)
 
 
 def evaluate(expression, rng=random):

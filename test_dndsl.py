@@ -85,3 +85,21 @@ def test_whitespace_is_ignored():
 def test_invalid_expression_raises_dice_error():
     with pytest.raises(DiceError):
         evaluate("2d")
+
+
+def test_keep_biggest_counts_only_the_biggest_dice():
+    result = evaluate("3d6kb1", rng=FakeRng(2, 5, 3))
+
+    assert result.total == 5
+
+
+def test_keep_biggest_maintains_rolls():
+    result = evaluate("4d6kb1", rng=FakeRng(2, 5, 3, 6))
+
+    assert result.rolls == [2, 5, 3, 6]
+
+
+def test_keep_biggest_two_counts_the_two_biggest_dice():
+    result = evaluate("4d10kb2", rng=FakeRng(2, 8, 3, 10))
+
+    assert result.total == 18
