@@ -1,4 +1,6 @@
-from dndsl import evaluate
+import pytest
+
+from dndsl import DiceError, evaluate
 
 
 class FakeRng:
@@ -71,3 +73,15 @@ def test_subtraction_keeps_rolls_from_both_operands():
     result = evaluate("1d6 - 1d4", rng=FakeRng(4, 3))
 
     assert result.rolls == [4, 3]
+
+
+def test_whitespace_is_ignored():
+    compact = evaluate("2d6+1", rng=FakeRng(3, 4))
+    spaced = evaluate("  2d6   +   1  ", rng=FakeRng(3, 4))
+
+    assert compact == spaced
+
+
+def test_invalid_expression_raises_dice_error():
+    with pytest.raises(DiceError):
+        evaluate("2d")

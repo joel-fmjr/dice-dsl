@@ -2,8 +2,13 @@ import random
 from dataclasses import dataclass
 
 from lark import Lark, Transformer, v_args
+from lark.exceptions import LarkError
 
 parser = Lark.open("dice.lark", rel_to=__file__)
+
+
+class DiceError(Exception):
+    pass
 
 
 @dataclass
@@ -48,4 +53,9 @@ class Interpreter(Transformer):
 
 
 def evaluate(expression, rng=random):
-    return Interpreter(rng).transform(parser.parse(expression))
+    try:
+        tree = parser.parse(expression)
+    except LarkError as error:
+        raise DiceError(f"invalid expression: {expression!r}") from error
+
+    return Interpreter(rng).transform(tree)
