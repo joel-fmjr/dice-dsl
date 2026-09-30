@@ -139,3 +139,15 @@ def test_explode_rolls_an_extra_die_for_each_max_face():
     result = evaluate("2d6ex", rng=FakeRng(6, 3, 4))
 
     assert result.total == 13
+
+
+def test_explode_chains_when_the_extra_die_is_also_max():
+    result = evaluate("1d6ex", rng=FakeRng(6, 6, 3))
+
+    assert result.total == 15
+
+
+def test_explode_resolves_a_separate_chain_for_each_max_die():
+    result = evaluate("3d6ex", rng=FakeRng(6, 6, 3, 6, 6, 4, 2))
+
+    assert result.total == 33

@@ -70,7 +70,11 @@ class Interpreter(Transformer):
 
     def explode(self):
         def apply(rolls, die):
-            extra = [die.roll() for roll in rolls if roll == die.faces]
+            extra = []
+            for roll in rolls:
+                while roll == die.faces:
+                    roll = die.roll()
+                    extra.append(roll)
             return rolls + extra
 
         return apply
