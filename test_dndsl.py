@@ -39,6 +39,11 @@ def test_rng_called_with_die_faces():
     assert rng.calls == [(1, 20)]
 
 
+def test_zero_sided_die_raises_dice_error():
+    with pytest.raises(DiceError):
+        evaluate("1d0")
+
+
 def test_plain_number():
     result = evaluate("5")
 
@@ -151,3 +156,8 @@ def test_explode_resolves_a_separate_chain_for_each_max_die():
     result = evaluate("3d6ex", rng=FakeRng(6, 6, 3, 6, 6, 4, 2))
 
     assert result.total == 33
+
+
+def test_explode_on_a_one_sided_die_raises_dice_error():
+    with pytest.raises(DiceError):
+        evaluate("1d1ex", rng=FakeRng(1, 1, 1))

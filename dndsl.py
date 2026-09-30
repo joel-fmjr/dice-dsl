@@ -2,7 +2,7 @@ import random
 from dataclasses import dataclass
 
 from lark import Lark, Transformer, v_args
-from lark.exceptions import LarkError
+from lark.exceptions import LarkError, VisitError
 
 parser = Lark.open("dice.lark", rel_to=__file__)
 
@@ -70,6 +70,9 @@ class Interpreter(Transformer):
 
     def explode(self):
         def apply(rolls, die):
+            if die.faces == 1:
+                raise DiceError("Can not explode a one-sided die")
+
             extra = []
             for roll in rolls:
                 while roll == die.faces:
@@ -80,9 +83,13 @@ class Interpreter(Transformer):
         return apply
 
     def roll(self, quantity, faces, *modifiers):
+        if not int(faces):
+            raise DiceError("Can not roll a zero-sided die")
+
         die = Die(faces=int(faces), rng=self.rng)
         rolls = [die.roll() for _ in range(int(quantity))]
         kept = rolls
+
         for modifier in modifiers:
             kept = modifier(kept, die)
         return RollResult(total=sum(kept), rolls=rolls)
@@ -94,4 +101,9 @@ def evaluate(expression, rng=random):
     except LarkError as error:
         raise DiceError(f"invalid expression: {expression!r}") from error
 
-    return Interpreter(rng).transform(tree)
+    try:
+        return Interpreter(rng).transform(tree)
+    except VisitError as error:
+        if isinstance(error.orig_exc, DiceError):
+            raise error.orig_exc from error
+        raise
