@@ -161,3 +161,15 @@ def test_explode_resolves_a_separate_chain_for_each_max_die():
 def test_explode_on_a_one_sided_die_raises_dice_error():
     with pytest.raises(DiceError):
         evaluate("1d1ex", rng=FakeRng(1, 1, 1))
+
+
+def test_reroll_rerolls_only_dice_below_the_threshold():
+    result = evaluate("4d8r<5", rng=FakeRng(6, 2, 8, 5, 6))
+
+    assert result.total == 25
+
+
+def test_reroll_rerolls_only_dice_above_the_threshold():
+    result = evaluate("4d8r>5", rng=FakeRng(6, 8, 6, 5, 2, 5, 3))
+
+    assert result.total == 15

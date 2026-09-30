@@ -82,6 +82,16 @@ class Interpreter(Transformer):
 
         return apply
 
+    def reroll(self, comp, threshold):
+        if comp != "<":
+            return lambda rolls, die: [
+                die.roll() if roll > int(threshold) else roll for roll in rolls
+            ]
+
+        return lambda rolls, die: [
+            die.roll() if roll < int(threshold) else roll for roll in rolls
+        ]
+
     def roll(self, quantity, faces, *modifiers):
         if not int(faces):
             raise DiceError("Can not roll a zero-sided die")
