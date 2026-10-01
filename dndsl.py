@@ -101,10 +101,8 @@ class Interpreter(Transformer):
         criterion = _criterion(comp, threshold)
 
         def apply(rolls, die):
-            if (comp == ">" and int(threshold) == 0) or (
-                comp == "<" and int(threshold) > die.faces
-            ):
-                raise DiceError
+            if all(criterion(face) for face in range(1, die.faces + 1)):
+                raise DiceError("Recursive reroll would never stop")
 
             new_rolls = []
             for roll in rolls:
