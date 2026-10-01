@@ -179,3 +179,9 @@ def test_recursive_reroll_repeats_until_the_die_leaves_the_range():
     result = evaluate("2d6rr<3", rng=FakeRng(2, 5, 1, 4))
 
     assert result.total == 9
+
+
+def test_recursive_reroll_above_repeats_until_the_die_leaves_the_range():
+    result = evaluate("2d6rr>4", rng=FakeRng(5, 2, 6, 3))
+
+    assert result.total == 5

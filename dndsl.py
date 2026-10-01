@@ -1,3 +1,4 @@
+import operator
 import random
 from dataclasses import dataclass
 
@@ -5,6 +6,14 @@ from lark import Lark, Transformer, v_args
 from lark.exceptions import LarkError, VisitError
 
 parser = Lark.open("dice.lark", rel_to=__file__)
+
+
+COMPARATORS = {"<": operator.lt, ">": operator.gt}
+
+
+def _criterion(comp, threshold):
+    compare = COMPARATORS[str(comp)]
+    return lambda roll: compare(roll, int(threshold))
 
 
 class DiceError(Exception):
@@ -83,23 +92,18 @@ class Interpreter(Transformer):
         return apply
 
     def reroll(self, comp, threshold):
-        if comp != "<":
-            return lambda rolls, die: [
-                die.roll() if roll > int(threshold) else roll for roll in rolls
-            ]
-
+        criterion = _criterion(comp, threshold)
         return lambda rolls, die: [
-            die.roll() if roll < int(threshold) else roll for roll in rolls
+            die.roll() if criterion(roll) else roll for roll in rolls
         ]
 
     def recursive_reroll(self, comp, threshold):
-        if comp != "<":
-            raise NotImplementedError
+        criterion = _criterion(comp, threshold)
 
         def apply(rolls, die):
             new_rolls = []
             for roll in rolls:
-                while roll < int(threshold):
+                while criterion(roll):
                     roll = die.roll()
                 new_rolls.append(roll)
             return new_rolls
