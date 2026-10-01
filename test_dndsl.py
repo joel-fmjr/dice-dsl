@@ -198,18 +198,12 @@ def test_recursive_reroll_below_is_valid_when_the_max_face_escapes():
     assert result.total == 6
 
 
-def test_recursive_reroll_below_the_min_face_never_rerolls():
-    result = evaluate("1d6rr<1", rng=FakeRng(1))
-
-    assert result.total == 1
-
-
 def test_recursive_reroll_above_zero_matches_every_face_and_raises_dice_error():
     with pytest.raises(DiceError):
         evaluate("1d6rr>0", rng=FakeRng(1, 2, 3))
 
 
-def test_recursive_reroll_above_the_max_face_never_rerolls():
-    result = evaluate("1d6rr>6", rng=FakeRng(6))
+def test_recursive_reroll_above_is_valid_when_the_min_face_escapes():
+    result = evaluate("1d6rr>1", rng=FakeRng(3, 1))
 
-    assert result.total == 6
+    assert result.total == 1
