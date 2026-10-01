@@ -80,6 +80,36 @@ def test_subtraction_keeps_rolls_from_both_operands():
     assert result.rolls == [4, 3]
 
 
+def test_multiplication():
+    result = evaluate("1d6 * 1d4", rng=FakeRng(4, 3))
+
+    assert result.total == 12
+
+
+def test_multiplication_keeps_rolls_from_both_operands():
+    result = evaluate("2d6 * 1d8", rng=FakeRng(4, 3, 8))
+
+    assert result.rolls == [4, 3, 8]
+
+
+def test_multiplication_takes_precedence_over_addition_on_the_right():
+    result = evaluate("3d6 + 3 * 2", rng=FakeRng(4, 3, 2))
+
+    assert result.total == 15
+
+
+def test_multiplication_takes_precedence_over_addition_on_the_left():
+    result = evaluate("3d6 * 2 + 3", rng=FakeRng(4, 3, 2))
+
+    assert result.total == 21
+
+
+def test_parentheses_change_precedence():
+    result = evaluate("(3d6 + 3) * 2", rng=FakeRng(4, 3, 2))
+
+    assert result.total == 24
+
+
 def test_whitespace_is_ignored():
     compact = evaluate("2d6+1", rng=FakeRng(3, 4))
     spaced = evaluate("  2d6   +   1  ", rng=FakeRng(3, 4))

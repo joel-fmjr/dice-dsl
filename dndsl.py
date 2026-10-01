@@ -56,6 +56,9 @@ class Interpreter(Transformer):
     def sub_expr(self, term_1, term_2):
         return term_1.combine(other=term_2, total=term_1.total - term_2.total)
 
+    def mul_expr(self, term_1, term_2):
+        return term_1.combine(other=term_2, total=term_1.total * term_2.total)
+
     def term(self, factor):
         return factor
 
