@@ -101,6 +101,11 @@ class Interpreter(Transformer):
         criterion = _criterion(comp, threshold)
 
         def apply(rolls, die):
+            if (comp == ">" and int(threshold) == 0) or (
+                comp == "<" and int(threshold) > die.faces
+            ):
+                raise DiceError
+
             new_rolls = []
             for roll in rolls:
                 while criterion(roll):
