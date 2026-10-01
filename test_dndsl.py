@@ -173,3 +173,9 @@ def test_reroll_rerolls_only_dice_above_the_threshold():
     result = evaluate("4d8r>5", rng=FakeRng(6, 8, 6, 5, 2, 5, 3))
 
     assert result.total == 15
+
+
+def test_recursive_reroll_repeats_until_the_die_leaves_the_range():
+    result = evaluate("2d6rr<3", rng=FakeRng(2, 5, 1, 4))
+
+    assert result.total == 9

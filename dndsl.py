@@ -92,6 +92,20 @@ class Interpreter(Transformer):
             die.roll() if roll < int(threshold) else roll for roll in rolls
         ]
 
+    def recursive_reroll(self, comp, threshold):
+        if comp != "<":
+            raise NotImplementedError
+
+        def apply(rolls, die):
+            new_rolls = []
+            for roll in rolls:
+                while roll < int(threshold):
+                    roll = die.roll()
+                new_rolls.append(roll)
+            return new_rolls
+
+        return apply
+
     def roll(self, quantity, faces, *modifiers):
         if not int(faces):
             raise DiceError("Can not roll a zero-sided die")
