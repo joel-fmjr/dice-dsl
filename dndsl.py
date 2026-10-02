@@ -69,36 +69,49 @@ class Interpreter(Transformer):
         return RollResult(total=int(value), rolls=[])
 
     def keep_biggest(self, count):
-        return lambda rolls, die: sorted(rolls, reverse=True)[: int(count)]
+        return lambda rolls, die: (
+            rolls,
+            sorted(rolls, reverse=True)[: int(count)],
+        )
 
     def keep_smallest(self, count):
-        return lambda rolls, die: sorted(rolls)[: int(count)]
+        return lambda rolls, die: (rolls, sorted(rolls)[: int(count)])
 
     def min_value(self, minimum):
-        return lambda rolls, die: [max(roll, int(minimum)) for roll in rolls]
+        return lambda rolls, die: (rolls, [max(roll, int(minimum)) for roll in rolls])
 
     def max_value(self, maximum):
-        return lambda rolls, die: [min(roll, int(maximum)) for roll in rolls]
+        return lambda rolls, die: (rolls, [min(roll, int(maximum)) for roll in rolls])
 
     def explode(self):
         def apply(rolls, die):
             if die.faces == 1:
                 raise DiceError("Can not explode a one-sided die")
 
-            extra = []
+            history = []
             for roll in rolls:
+                history.append(roll)
                 while roll == die.faces:
                     roll = die.roll()
-                    extra.append(roll)
-            return rolls + extra
+                    history.append(roll)
+            return history, history
 
         return apply
 
     def reroll(self, comp, threshold):
         criterion = _criterion(comp, threshold)
-        return lambda rolls, die: [
-            die.roll() if criterion(roll) else roll for roll in rolls
-        ]
+
+        def apply(rolls, die):
+            history, counted = [], []
+            for roll in rolls:
+                history.append(roll)
+                if criterion(roll):
+                    roll = die.roll()
+                    history.append(roll)
+                counted.append(roll)
+            return history, counted
+
+        return apply
 
     def recursive_reroll(self, comp, threshold):
         criterion = _criterion(comp, threshold)
@@ -107,12 +120,14 @@ class Interpreter(Transformer):
             if all(criterion(face) for face in range(1, die.faces + 1)):
                 raise DiceError("Recursive reroll would never stop")
 
-            new_rolls = []
+            history, counted = [], []
             for roll in rolls:
+                history.append(roll)
                 while criterion(roll):
                     roll = die.roll()
-                new_rolls.append(roll)
-            return new_rolls
+                    history.append(roll)
+                counted.append(roll)
+            return history, counted
 
         return apply
 
@@ -121,12 +136,12 @@ class Interpreter(Transformer):
             raise DiceError("Can not roll a zero-sided die")
 
         die = Die(faces=int(faces), rng=self.rng)
-        rolls = [die.roll() for _ in range(int(quantity))]
-        kept = rolls
+        history = counted = [die.roll() for _ in range(int(quantity))]
 
         for modifier in modifiers:
-            kept = modifier(kept, die)
-        return RollResult(total=sum(kept), rolls=rolls)
+            history, counted = modifier(counted, die)
+
+        return RollResult(total=sum(counted), rolls=history)
 
 
 def evaluate(expression, rng=random):

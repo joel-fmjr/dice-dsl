@@ -237,3 +237,15 @@ def test_recursive_reroll_above_is_valid_when_the_min_face_escapes():
     result = evaluate("1d6rr>1", rng=FakeRng(3, 1))
 
     assert result.total == 1
+
+
+def test_recursive_reroll_keeps_the_original_rolls():
+    result = evaluate("1d6rr<3", rng=FakeRng(1, 4))
+
+    assert result.rolls == [1, 4]
+
+
+def test_keep_biggest_works_on_dice_capped_by_a_previous_max():
+    result = evaluate("2d6max3kb2", rng=FakeRng(5, 5))
+
+    assert result.total == 6
