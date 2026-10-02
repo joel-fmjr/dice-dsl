@@ -249,3 +249,9 @@ def test_keep_biggest_works_on_dice_capped_by_a_previous_max():
     result = evaluate("2d6max3kb2", rng=FakeRng(5, 5))
 
     assert result.total == 6
+
+
+def test_rolls_keep_the_dice_replaced_by_an_earlier_reroll():
+    result = evaluate("2d6r<3kb1", rng=FakeRng(1, 5, 4))
+
+    assert result.rolls == [1, 4, 5]

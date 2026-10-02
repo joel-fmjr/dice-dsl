@@ -69,22 +69,22 @@ class Interpreter(Transformer):
         return RollResult(total=int(value), rolls=[])
 
     def keep_biggest(self, count):
-        return lambda rolls, die: (
-            rolls,
+        return lambda rolls, history, die: (
+            history,
             sorted(rolls, reverse=True)[: int(count)],
         )
 
     def keep_smallest(self, count):
-        return lambda rolls, die: (rolls, sorted(rolls)[: int(count)])
+        return lambda rolls, history, die: (rolls, sorted(rolls)[: int(count)])
 
     def min_value(self, minimum):
-        return lambda rolls, die: (rolls, [max(roll, int(minimum)) for roll in rolls])
+        return lambda rolls, history, die: (rolls, [max(roll, int(minimum)) for roll in rolls])
 
     def max_value(self, maximum):
-        return lambda rolls, die: (rolls, [min(roll, int(maximum)) for roll in rolls])
+        return lambda rolls, history, die: (rolls, [min(roll, int(maximum)) for roll in rolls])
 
     def explode(self):
-        def apply(rolls, die):
+        def apply(rolls, history, die):
             if die.faces == 1:
                 raise DiceError("Can not explode a one-sided die")
 
@@ -101,7 +101,7 @@ class Interpreter(Transformer):
     def reroll(self, comp, threshold):
         criterion = _criterion(comp, threshold)
 
-        def apply(rolls, die):
+        def apply(rolls, history, die):
             history, counted = [], []
             for roll in rolls:
                 history.append(roll)
@@ -116,7 +116,7 @@ class Interpreter(Transformer):
     def recursive_reroll(self, comp, threshold):
         criterion = _criterion(comp, threshold)
 
-        def apply(rolls, die):
+        def apply(rolls, history, die):
             if all(criterion(face) for face in range(1, die.faces + 1)):
                 raise DiceError("Recursive reroll would never stop")
 
@@ -139,7 +139,7 @@ class Interpreter(Transformer):
         history = counted = [die.roll() for _ in range(int(quantity))]
 
         for modifier in modifiers:
-            history, counted = modifier(counted, die)
+            history, counted = modifier(counted, history, die)
 
         return RollResult(total=sum(counted), rolls=history)
 
